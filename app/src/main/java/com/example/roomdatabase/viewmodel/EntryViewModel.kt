@@ -4,6 +4,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.example.roomdatabase.repositori.RepositoriSiswa
 import com.example.roomdatabase.room.Siswa
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 class EntryViewModel(private val repositoriSiswa: RepositoriSiswa): ViewModel(){
     var uiStateSiswa by mutableStateOf(UIStateSiswa())

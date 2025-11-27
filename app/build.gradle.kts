@@ -69,4 +69,3 @@ dependencies {
     // Navigasi
     implementation(libs.navigation.compose)
 }
-}

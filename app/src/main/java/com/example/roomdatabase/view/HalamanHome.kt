@@ -117,6 +117,7 @@ fun ListSiswa(
             siswa = person,
             modifier = Modifier
                 .padding(dimensionResource(id = R.dimen.padding_small)))
+                .clickable {onSiswaClick(person)}
         }
     }
 }

@@ -1,7 +1,6 @@
 package com.example.roomdatabase.view.route
 
 import com.example.roomdatabase.R
-import com.example.roomdatabase.view.route.DestinasiNavigasi
 
 object DestinasiDetailSiswa : DestinasiNavigasi {
     override val route = "detail_siswa"

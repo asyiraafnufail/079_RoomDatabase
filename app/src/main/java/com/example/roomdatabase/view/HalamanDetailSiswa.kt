@@ -46,7 +46,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailSiswaScreen(
-    navigateToEditItem: (Int) -> Unit,
+    // navigateToEditItem: (Int) -> Unit,
     navigateBack: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: DetailViewModel = viewModel(factory = PenyediaViewModel.Factory)
@@ -62,7 +62,9 @@ fun DetailSiswaScreen(
         floatingActionButton = {
             val uiState = viewModel.uiDetailState.collectAsState()
             FloatingActionButton(
-                onClick = { navigateToEditItem(uiState.value.detailSiswa.id) },
+                onClick = {
+                    // navigateToEditItem(uiState.value.detailSiswa.id)
+                          },
                 shape = MaterialTheme.shapes.medium,
                 modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
 

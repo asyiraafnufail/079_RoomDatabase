@@ -42,9 +42,10 @@ import com.example.roomdatabase.viewmodel.provider.PenyediaViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    navigateToItemEntry: () -> Unit,
-    navigateToItemUpdate: (Int) -> Unit,
+    navigateToItemEntry: () -> Unit,      // Navigasi ke halaman Tambah
+    navigateToItemUpdate: (Int) -> Unit,  // Navigasi ke halaman Detail/Edit (bawa ID)
     modifier: Modifier = Modifier,
+    // Inisialisasi ViewModel dengan Factory
     viewModel: HomeViewModel = viewModel(factory = PenyediaViewModel.Factory)
 ){
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
@@ -52,12 +53,14 @@ fun HomeScreen(
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
+            // Menggunakan TopBar custom (tanpa tombol back)
             SiswaTopAppBar(
                 title = stringResource(DestinasiHome.titleRes),
                 canNavigateBack = false,
                 scrollBehavior = scrollBehavior
             )
         },
+        // Tombol Tambah (+) di pojok kanan bawah
         floatingActionButton = {
             FloatingActionButton(
                 onClick = navigateToItemEntry,
@@ -70,9 +73,14 @@ fun HomeScreen(
                 )
             }
         },
-    ){
-            innerPadding ->
+    ){ innerPadding ->
+
+        // 1. Mengambil Data (State)
+        // 'collectAsState' mengubah aliran data (Flow) dari database menjadi State Compose.
+        // Artinya: Jika ada data baru di database, variabel 'uiStateSiswa' otomatis berubah,
+        // dan layar akan refresh sendiri.
         val uiStateSiswa by viewModel.homeUiState.collectAsState()
+
         BodyHome(
             itemSiswa = uiStateSiswa.listSiswa,
             onSiswaClick = navigateToItemUpdate,
@@ -92,6 +100,8 @@ fun BodyHome(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
     ){
+        // 2. Logika Tampilan Kosong
+        // Jika database kosong, tampilkan teks "Tidak ada data".
         if (itemSiswa.isEmpty()) {
             Text(
                 text = stringResource(R.string.deskripsi_no_item),
@@ -99,6 +109,7 @@ fun BodyHome(
                 style = MaterialTheme.typography.titleLarge
             )
         } else {
+            // Jika ada data, tampilkan ListSiswa
             ListSiswa(
                 itemSiswa = itemSiswa,
                 onSiswaClick = { onSiswaClick(it.id) },
@@ -114,13 +125,17 @@ fun ListSiswa(
     onSiswaClick: (Siswa) -> Unit,
     modifier: Modifier=Modifier
 ){
-    LazyColumn(modifier = modifier){ // Changed Modifier to modifier to match parameter name
+    // 3. LazyColumn
+    // Digunakan untuk menampilkan daftar data yang banyak.
+    // 'Lazy' artinya hanya me-render item yang terlihat di layar saja (hemat memori).
+    LazyColumn(modifier = modifier){
         items(items = itemSiswa, key = {it.id}){ person ->
             DataSiswa(
                 siswa = person,
                 modifier = Modifier
                     .padding(dimensionResource(id = R.dimen.padding_small))
-                    .clickable { onSiswaClick(person) } // Correct usage
+                    // Saat kartu diklik, panggil fungsi onSiswaClick
+                    .clickable { onSiswaClick(person) }
             )
         }
     }
@@ -132,6 +147,8 @@ fun DataSiswa(
     siswa: Siswa,
     modifier: Modifier = Modifier
 ){
+    // 4. Card (Desain Item)
+    // Tampilan kotak untuk setiap satu data siswa
     Card(
         modifier = modifier,
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -147,6 +164,7 @@ fun DataSiswa(
                     text = siswa.nama,
                     style = MaterialTheme.typography.titleLarge,
                 )
+                // Spacer weight(1f) mendorong elemen berikutnya (Icon & Telpon) ke ujung kanan
                 Spacer(Modifier.weight(1f))
                 Icon(
                     imageVector = Icons.Default.Phone ,

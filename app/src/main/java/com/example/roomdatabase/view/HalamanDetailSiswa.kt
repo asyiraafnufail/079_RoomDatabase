@@ -46,9 +46,11 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailSiswaScreen(
+    // Callback navigasi: Mengirim ID siswa ke layar Edit
     navigateToEditItem: (Int) -> Unit,
     navigateBack: () -> Unit,
     modifier: Modifier = Modifier,
+    // Mengambil ViewModel menggunakan Factory agar bisa akses Database
     viewModel: DetailViewModel = viewModel(factory = PenyediaViewModel.Factory)
 ) {
     Scaffold(
@@ -59,15 +61,17 @@ fun DetailSiswaScreen(
                 navigateUp = navigateBack
             )
         },
+        // Tombol Melayang (FAB) untuk Edit
         floatingActionButton = {
+            // Mengambil state terbaru dari ViewModel
             val uiState = viewModel.uiDetailState.collectAsState()
             FloatingActionButton(
                 onClick = {
+                    // Saat diklik, panggil navigasi sambil membawa ID Siswa yang sedang tampil
                     navigateToEditItem(uiState.value.detailSiswa.id)
-                          },
+                },
                 shape = MaterialTheme.shapes.medium,
                 modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
-
             ) {
                 Icon(
                     imageVector = Icons.Default.Edit,
@@ -76,21 +80,28 @@ fun DetailSiswaScreen(
             }
         }, modifier = modifier
     ) { innerPadding ->
+
+        // Mengumpulkan state data (Flow -> State)
         val uiState = viewModel.uiDetailState.collectAsState()
         val coroutineScope = rememberCoroutineScope()
+
         BodyDetailDataSiswa(
             detailSiswaUiState = uiState.value,
-            onDelete = { coroutineScope.launch {
-                viewModel.deleteSiswa()
-                navigateBack()
-            }},
+            // Logika Hapus Data:
+            onDelete = {
+                coroutineScope.launch {
+                    viewModel.deleteSiswa() // Hapus di database
+                    navigateBack()          // Kembali ke halaman list
+                }
+            },
             modifier = Modifier
                 .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(rememberScrollState()) // Agar bisa discroll jika layar kecil
         )
     }
 }
 
+// Komponen Utama Body
 @Composable
 private fun BodyDetailDataSiswa(
     detailSiswaUiState: DetailSiswaUiState,
@@ -101,33 +112,39 @@ private fun BodyDetailDataSiswa(
         modifier = modifier.padding(dimensionResource(id = R.dimen.padding_medium)),
         verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_medium))
     ) {
+        // State lokal untuk mengontrol muncul/hilangnya Dialog Konfirmasi
         var deleteConfirmationRequired by rememberSaveable { mutableStateOf(false) }
 
+        // Menampilkan Kartu Data
         DetailDataSiswa(
-            siswa = detailSiswaUiState.detailSiswa.toSiswa(),
+            siswa = detailSiswaUiState.detailSiswa.toSiswa(), // Konversi dari UI State ke Entity Siswa
             modifier = Modifier.fillMaxWidth()
         )
 
+        // Tombol Delete (Outline Button)
         OutlinedButton(
-            onClick = { deleteConfirmationRequired = true },
+            onClick = { deleteConfirmationRequired = true }, // Munculkan dialog saat diklik
             shape = MaterialTheme.shapes.small,
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(stringResource(R.string.delete))
         }
+
+        // Logika Dialog
         if (deleteConfirmationRequired) {
             DeleteConfirmationDialog(
                 onDeleteConfirm = {
                     deleteConfirmationRequired = false
-                    onDelete()
+                    onDelete() // Panggil fungsi hapus yang sebenarnya
                 },
-                onDeleteCancel = { deleteConfirmationRequired = false },
+                onDeleteCancel = { deleteConfirmationRequired = false }, // Batal hapus
                 modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_medium))
             )
         }
     }
 }
 
+// Tampilan Kartu Data (Card)
 @Composable
 fun DetailDataSiswa(
     siswa: Siswa, modifier: Modifier = Modifier
@@ -144,52 +161,39 @@ fun DetailDataSiswa(
                 .padding(dimensionResource(id = R.dimen.padding_medium)),
             verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_medium))
         ) {
+            // Menampilkan baris per baris (Nama, Alamat, Telpon)
             BarisDetailData(
                 labelResID = R.string.nama1,
                 itemDetail = siswa.nama,
-                modifier = Modifier.padding(
-                    horizontal = dimensionResource(
-                        id = R.dimen
-                            .padding_medium
-                    )
-                )
+                modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.padding_medium))
             )
             BarisDetailData(
                 labelResID = R.string.alamat1,
                 itemDetail = siswa.alamat,
-                modifier = Modifier.padding(
-                    horizontal = dimensionResource(
-                        id = R.dimen
-                            .padding_medium
-                    )
-                )
+                modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.padding_medium))
             )
             BarisDetailData(
                 labelResID = R.string.telpon1,
                 itemDetail = siswa.telpon,
-                modifier = Modifier.padding(
-                    horizontal = dimensionResource(
-                        id = R.dimen
-                            .padding_medium
-                    )
-                )
+                modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.padding_medium))
             )
         }
-
     }
 }
 
+// Komponen Baris Kecil (Label : Isi)
 @Composable
 private fun BarisDetailData(
     @StringRes labelResID: Int, itemDetail: String, modifier: Modifier = Modifier
 ) {
     Row(modifier = modifier) {
         Text(stringResource(labelResID))
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.weight(1f)) // Mendorong teks isi ke paling kanan
         Text(text = itemDetail, fontWeight = FontWeight.Bold)
     }
 }
 
+// Pop-up Alert Dialog
 @Composable
 private fun DeleteConfirmationDialog(
     onDeleteConfirm: () -> Unit,
@@ -197,8 +201,8 @@ private fun DeleteConfirmationDialog(
     modifier: Modifier = Modifier
 ) {
     AlertDialog(onDismissRequest = { /* Do nothing */ },
-        title = { Text(stringResource(R.string.attention)) },
-        text = { Text(stringResource(R.string.tanya)) },
+        title = { Text(stringResource(R.string.attention)) }, // Judul: "Perhatian"
+        text = { Text(stringResource(R.string.tanya)) },      // Teks: "Yakin hapus data?"
         modifier = modifier,
         dismissButton = {
             TextButton(onClick = onDeleteCancel) {

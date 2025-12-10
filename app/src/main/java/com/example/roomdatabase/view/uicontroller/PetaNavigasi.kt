@@ -9,6 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+// Import screen dan route yang sudah dibuat sebelumnya
 import com.example.roomdatabase.view.DetailSiswaScreen
 import com.example.roomdatabase.view.EditSiswaScreen
 import com.example.roomdatabase.view.EntrySiswaScreen
@@ -19,8 +20,12 @@ import com.example.roomdatabase.view.route.DestinasiEditSiswa
 import com.example.roomdatabase.view.route.DestinasiHome
 import com.example.roomdatabase.view.route.DestinasiEntry
 
+// 1. SiswaApp
+// Ini adalah pembungkus utama aplikasi.
+// Fungsinya membuat kontroler navigasi (rememberNavController)
+// dan memanggil HostNavigasi.
 @Composable
-fun SiswaApp(navController: NavHostController= rememberNavController(), modifier: Modifier){
+fun SiswaApp(navController: NavHostController = rememberNavController(), modifier: Modifier = Modifier){
     HostNavigasi(navController = navController)
 }
 
@@ -30,28 +35,58 @@ fun HostNavigasi(
     navController: NavHostController,
     modifier: Modifier = Modifier
 ){
-    NavHost(navController=navController, startDestination = DestinasiHome.route, modifier = Modifier)
+    // 2. NavHost
+    // Ini adalah "Wadah" di mana layar akan berganti-ganti.
+    // startDestination = Menentukan layar apa yang pertama kali muncul (Home).
+    NavHost(
+        navController = navController,
+        startDestination = DestinasiHome.route,
+        modifier = Modifier
+    )
     {
+        // --- Rute ke Halaman Home ---
         composable(DestinasiHome.route){
             HomeScreen(
-                navigateToItemEntry = {navController.navigate(DestinasiEntry.route)},
+                // Jika tombol tambah ditekan, navigasi ke halaman Entry
+                navigateToItemEntry = { navController.navigate(DestinasiEntry.route) },
+
+                // Jika salah satu siswa di list diklik:
+                // Kita navigasi ke halaman Detail sambil membawa ID siswa tersebut ($it).
+                // Contoh URL: "detail_siswa/5"
                 navigateToItemUpdate = {
                     navController.navigate("${DestinasiDetailSiswa.route}/$it")
                 }
             )
         }
+
+        // --- Rute ke Halaman Entry (Tambah Data) ---
         composable(DestinasiEntry.route){
-            EntrySiswaScreen(navigateBack = { navController.popBackStack()})
+            EntrySiswaScreen(
+                // Jika tombol back ditekan, kembali ke stack sebelumnya (Home)
+                navigateBack = { navController.popBackStack() }
+            )
         }
-        composable(route = DestinasiDetailSiswa.routeWithArgs,
+
+        // --- Rute ke Halaman Detail (Lihat Data) ---
+        // Rute ini spesial karena menerima ARGUMEN (itemIdArg).
+        composable(
+            route = DestinasiDetailSiswa.routeWithArgs,
             arguments = listOf(navArgument(itemIdArg) {
-                type = NavType.IntType
+                type = NavType.IntType // Memastikan ID yang diterima harus Angka (Int)
             })
         ){
             DetailSiswaScreen(
+                // Dari halaman detail, jika mau edit, lanjut ke halaman Edit
+                // Sambil mengoper ID yang sama ($it)
                 navigateToEditItem = { navController.navigate("${DestinasiEditSiswa.route}/$it") },
-                navigateBack = { navController.navigateUp() })
+
+                // Kembali ke halaman sebelumnya
+                navigateBack = { navController.navigateUp() }
+            )
         }
+
+        // --- Rute ke Halaman Edit (Ubah Data) ---
+        // Sama seperti Detail, halaman ini juga butuh ID untuk tahu siapa yang diedit.
         composable(
             route = DestinasiEditSiswa.routeWithArgs,
             arguments = listOf(
@@ -61,10 +96,10 @@ fun HostNavigasi(
             )
         ) {
             EditSiswaScreen(
+                // Setelah selesai edit atau batal, kembali ke halaman sebelumnya
                 navigateBack = { navController.popBackStack() },
                 onNavigateUp = { navController.navigateUp() }
             )
         }
-
     }
 }

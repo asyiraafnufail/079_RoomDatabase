@@ -1,0 +1,72 @@
+A. Tambahkan Plugin KSP (Project Level)
+Buka build.gradle.kts (Project: ...) dan tambahkan di blok plugins
+
+plugins {
+    // ... plugin standar lainnya
+    // Tambahkan baris ini untuk KSP (pastikan versinya kompatibel dengan versi Kotlin Anda)
+    id("com.google.devtools.ksp") version "1.9.0-1.0.13" apply false
+    alias(libs.plugins.ksp)
+}
+
+B. Tambahkan Dependencies (Module Level)
+Buka build.gradle.kts (Module: app)
+
+plugins {
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.jetbrains.kotlin.android)
+    id("com.google.devtools.ksp")
+    alias(libs.plugins.ksp) apply false
+}
+
+Tambahkan dependencies
+dependencies {
+    // ... dependencies bawaan jangan dihapus ...
+
+    // --- 1. ROOM DATABASE ---
+    val room_version = "2.6.1"
+    implementation("androidx.room:room-runtime:$room_version")
+    implementation("androidx.room:room-ktx:$room_version") // Wajib untuk Coroutines/Flow
+    ksp("androidx.room:room-compiler:$room_version")      // PENTING: Pakai ksp, bukan implementation
+
+    // --- 2. NAVIGATION COMPOSE ---
+    implementation("androidx.navigation:navigation-compose:2.7.7")
+
+    // --- 3. LIFECYCLE & VIEWMODEL ---
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.0")
+}
+
+SYNC!!!!!!!
+
+C. Setup Class Application (Wajib!)
+   Buat class baru, misal AplikasiSiswa.kt (turunan dari Application()).
+   Isi kode container/dependency injection di dalamnya (seperti yang Anda buat sebelumnya).
+   Daftarkan di Manifest.
+   Buka AndroidManifest.xml, cari tag <application. Tambahkan atribut android:name
+
+<manifest ...>
+    <application
+        android:name=".AplikasiSiswa"  <-- JANGAN LUPA INI!
+        android:allowBackup="true"
+        ... >
+
+        </application>
+</manifest>
+
+D. Tambahkan libsversion
+
+[versions]
+# ... versi lain yang sudah ada ...
+ksp = "1.9.20-1.0.14"  # Sesuaikan dengan versi Kotlin project Anda
+room = "2.6.1"
+
+[libraries]
+# ... library lain ...
+androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+
+[plugins]
+# ... plugin lain ...
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+
